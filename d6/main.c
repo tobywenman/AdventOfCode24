@@ -108,6 +108,39 @@ vec2_t vec2Add(vec2_t a, vec2_t b)
     return out;
 }
 
+typedef struct 
+{
+    vec2_t* data;
+    size_t len;
+    size_t allocSize;
+}dynVec2Arr_t;
+
+dynVec2Arr_t initVecArr()
+{
+    dynVec2Arr_t out;
+    out.allocSize = 0;
+    out.len = 0;
+    out.data = NULL;
+    return out;
+}
+
+void pushBackVec(dynVec2Arr_t* rule, vec2_t newVal)
+{
+    if (rule->allocSize == 0)
+    {
+        rule->data = malloc(sizeof(vec2_t));
+        rule->allocSize = 1;
+    }
+
+    if (rule->len == rule->allocSize)
+    {
+        rule->allocSize *= 2;
+        rule->data = realloc(rule->data, rule->allocSize*sizeof(vec2_t));
+    }
+
+    rule->data[rule->len] = newVal;
+    ++rule->len;
+}
 
 typedef struct main
 {
@@ -188,10 +221,14 @@ bool updateDudePos(grid_t *data, dude_t *dude)
 
         if (newPos.x < 0 || newPos.x >= data->x)
         {
+            char *idxRes = idxGridRef(data, dude->pos.x, dude->pos.y);
+            *idxRes = 'X';
             return false;
         }
         if (newPos.y < 0 || newPos.y >= data->y)
         {
+            char *idxRes = idxGridRef(data, dude->pos.x, dude->pos.y);
+            *idxRes = 'X';
             return false;
         }
 
@@ -211,17 +248,24 @@ bool updateDudePos(grid_t *data, dude_t *dude)
     return true;
 }
 
-unsigned countVisits(const grid_t* grid)
+unsigned countVisits(const grid_t* grid, dynVec2Arr_t* vecArr)
 {
     unsigned visits = 0;
-    for (size_t i=0; i<grid->x*grid->y; i++)
+    for (size_t x=0; x<grid->x; x++)
     {
-        if (grid->data[i] == 'X')
+        for (size_t y=0; y<grid->y; y++)
         {
-            ++visits;
+            if (idxGrid(grid, x, y) == 'X')
+            {
+                vec2_t vec;
+                vec.x = x;
+                vec.y = y;
+                pushBackVec(vecArr, vec);
+                ++visits;
+            }
         }
     }
-    return visits + 1;
+    return visits;
 }
 
 void resetGrid(grid_t* grid)
@@ -266,27 +310,26 @@ int main()
     dude_t initDude = dudeFromGrid(&data);
     dude_t dude = initDude;
 
+    dynVec2Arr_t positions = initVecArr();
+
     while (updateDudePos(&data, &dude));
 
-    printf("part1: %d\n", countVisits(&data));
+    printf("part1: %d\n", countVisits(&data, &positions));
 
     unsigned part2 = 0;
 
-    for (size_t i=0; i<data.x*data.y; i++)
+    for (size_t i=0; i<positions.len; i++)
     {
-        
-        if (data.data[i] == '#')
-        {
-            continue;
-        }
+        char *Curpos = idxGridRef(&data, positions.data[i].x, positions.data[i].y);
+
         resetGrid(&data);
-        data.data[i] = '#';
+        *Curpos = '#';
 
         if (testStuck(&data, initDude))
         {
             ++part2;
         }
-        data.data[i] = '.';
+        *Curpos = '.';
     }
     printf("part2: %d\n", part2);
 }
