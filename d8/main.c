@@ -220,12 +220,7 @@ int main()
 
             // Xr is the x position we are checking
             // Find the first one which is an integer
-            Xr = 0;
-            while ((Xr-X1) % (X1-X2) != 0)
-            {
-                ++Xr;
-            }
-            
+            Xr = X1;
             // Now increment by X1-X2, as they are all guaranteed to be integers too
             // This avoids the expensive mod operator (probably 10 ish cycles non-pipelined)
             for (Xr; Xr<grid.x; Xr+=abs(X1-X2))
@@ -234,6 +229,23 @@ int main()
                 if (Yr >= 0 && Yr < grid.y)
                 {
                     antiNodesP2[Yr*grid.x + Xr] = true;
+                }
+                else
+                {
+                    break;
+                }
+            }
+            Xr = X1 - abs(X1-X2);
+            for (Xr; Xr>=0; Xr-=abs(X1-X2))
+            {
+                Yr = ((Xr - X1)/(X1-X2)) * (Y1-Y2) + Y1;
+                if (Yr >= 0 && Yr < grid.y)
+                {
+                    antiNodesP2[Yr*grid.x + Xr] = true;
+                }
+                else
+                {
+                    break;
                 }
             }
         }
