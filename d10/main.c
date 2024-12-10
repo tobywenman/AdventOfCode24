@@ -10,7 +10,7 @@ typedef struct
     size_t x,y;
 }grid_t;
 
-grid_t initGridFromFile(char* fileName)
+grid_t initGridFromFile(const char* fileName)
 {
     FILE* fptr = fopen(fileName, "r");
 
@@ -39,7 +39,7 @@ grid_t initGridFromFile(char* fileName)
                 exit(1);
             }
         }
-        out.data = realloc(out.data, out.x*(out.y+1)*sizeof(char)); // Is char always 1-byte???? 
+        out.data = (char*)realloc(out.data, out.x*(out.y+1)*sizeof(char)); // Is char always 1-byte???? 
 
         memcpy(&out.data[out.x*out.y],line,len*sizeof(char));
 
@@ -56,7 +56,7 @@ grid_t initGridFromFile(char* fileName)
 grid_t initBlankGrid(size_t x, size_t y)
 {
     grid_t out;
-    out.data = malloc(x*y*sizeof(char));
+    out.data = (char*)malloc(x*y*sizeof(char));
 
     memset(out.data, '.', x*y*sizeof(char));
 
