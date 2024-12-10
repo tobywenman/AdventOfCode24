@@ -48,6 +48,8 @@ grid_t initGridFromFile(char* fileName)
 
     fclose(fptr);
 
+    free(line);
+
     return out;
 }
 
@@ -70,15 +72,7 @@ void freeGrid(grid_t* grid)
     grid->data = NULL;
 }
 
-char idxGrid(const grid_t* grid, size_t x, size_t y)
-{
-    return grid->data[grid->x*y + x];
-}
-
-char* idxGridRef(grid_t* grid, size_t x, size_t y)
-{
-    return &grid->data[grid->x*y + x];
-}
+#define idxGrid(GRID,X,Y) ((GRID)->data[(GRID)->x*(Y) + (X)])
 
 void printGrid(const grid_t* grid)
 {
@@ -99,8 +93,7 @@ unsigned countRoutesRecur(const grid_t* map, size_t x, size_t y, grid_t* output)
 
     if (curValue == '9')
     {
-        char* out = idxGridRef(output, x, y);
-        *out = 'x';
+        idxGrid(output, x, y) = 'x';
         return 1;
     }
 
@@ -163,6 +156,8 @@ int main()
             }
         }
     }
+
+    freeGrid(&map);
 
     printf("part1: %d\n", part1);
     printf("part2: %d\n", part2);
